@@ -43,7 +43,7 @@ function setOnline(tsIso){
 
 async function loadState(){
   try{
-    const s = await fetchJSON("../data/state.json");
+    const s = await fetchJSON("data/state.json");
     $("sym").textContent   = s.symbol ?? "–";
     $("price").textContent = (s.price ?? 0).toFixed(3);
     $("conf").textContent  = (s.confidence ?? 0).toFixed(3);
@@ -70,7 +70,7 @@ async function loadState(){
 
 async function loadEquity(){
   try{
-    const csv = await fetchCSV("../data/equity.csv");
+    const csv = await fetchCSV("data/equity.csv");
     const lines = csv.trim().split("\n");
     const rows = lines.slice(1).map(l=>{
       const [ts,eq] = l.split(",");
