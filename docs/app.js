@@ -1,3 +1,12 @@
+const PUBLISH_EVERY_MS = 5 * 60 * 1000;       // dein Bot publish-Intervall
+const FRESH_MAX_MS = PUBLISH_EVERY_MS * 2.2;  // Toleranz
+
+function computeStatus(tsISO, onlineFlag){
+  const age = Date.now() - new Date(tsISO).getTime();
+  if (!onlineFlag) return {key:'offline', age};
+  if (age > FRESH_MAX_MS) return {key:'stale', age}; // Daten veraltet
+  return {key:'online', age};
+}
 const $ = (id) => document.getElementById(id);
 const ok = (v) => (v===true || v==="true" ? "ja" : "nein");
 
@@ -51,6 +60,10 @@ async function loadState(){
     $("trades").textContent= String(s.active_trades ?? 0);
     $("bal").textContent   = (s.balance_clean ?? 0).toLocaleString();
 
+    const dot = document.querySelector('#status-dot'); // <span id="status-dot"></span>
+    dot.className = `dot ${st.key}`;
+    dot.textContent = ` ${st.key}`; // optional: text
+    
     const sent = s.sentiment || {};
     $("sent-p").textContent   = (sent.positive ?? 0).toFixed(2);
     $("sent-n").textContent   = (sent.neutral ?? 0).toFixed(2);
@@ -79,6 +92,12 @@ async function loadEquity(){
     chart.data.datasets[0].data = rows;
     chart.update();
   }catch(e){ console.error(e); }
+}
+
+async function fetchJSON(u){ 
+  const r = await fetch(`${u}?_=${Date.now()}`, { cache: 'no-store' });
+  if(!r.ok) throw new Error(r.statusText);
+  return r.json();
 }
 
 async function tick(){
