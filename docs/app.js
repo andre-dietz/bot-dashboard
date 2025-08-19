@@ -1,15 +1,18 @@
-const PUBLISH_EVERY_MS = 5 * 60 * 1000;       // dein Bot publish-Intervall
-const FRESH_MAX_MS = PUBLISH_EVERY_MS * 2.2;  // Toleranz
+// ---- Status-Logik ----
+const PUBLISH_EVERY_MS = 5 * 60 * 1000;       // Bot publisht alle 5 Min
+const FRESH_MAX_MS     = PUBLISH_EVERY_MS * 2.2;  // Toleranz
+
+const $  = (id) => document.getElementById(id);
+const ok = (v)  => (v === true || v === "true") ? "ja" : "nein";
 
 function computeStatus(tsISO, onlineFlag){
   const age = Date.now() - new Date(tsISO).getTime();
-  if (!onlineFlag) return {key:'offline', age};
-  if (age > FRESH_MAX_MS) return {key:'stale', age}; // Daten veraltet
-  return {key:'online', age};
+  if (!onlineFlag)         return { key: "offline", age };
+  if (age > FRESH_MAX_MS)  return { key: "stale",   age };
+  return { key: "online",  age };
 }
-const $ = (id) => document.getElementById(id);
-const ok = (v) => (v===true || v==="true" ? "ja" : "nein");
 
+// ---- Chart ----
 let chart;
 function initChart() {
   const ctx = document.getElementById("equityChart").getContext("2d");
@@ -17,96 +20,95 @@ function initChart() {
     type: "line",
     data: { datasets: [{ label: "Equity", data: [] }] },
     options: {
-      parsing:false,
-      responsive:true,
-      interaction:{ intersect:false, mode:"index" },
-      plugins:{ legend:{display:false} },
-      scales:{
-        x:{ type:"time", time:{ unit:"minute" } },
-        y:{ ticks:{ callback:(v)=> v.toLocaleString() } }
+      parsing: false,
+      responsive: true,
+      interaction: { intersect: false, mode: "index" },
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { type: "time", time: { unit: "minute" } },
+        y: { ticks: { callback: (v) => v.toLocaleString() } }
       }
     }
   });
 }
 
-async function fetchJSON(path){
-  const r = await fetch(path + "?ts=" + Date.now());
-  if(!r.ok) throw new Error("fetch failed " + path);
+// ---- Fetch helpers (einmalig) ----
+async function fetchJSON(u){
+  const r = await fetch(`${u}?_=${Date.now()}`, { cache: "no-store" });
+  if (!r.ok) throw new Error(r.statusText);
   return r.json();
 }
-async function fetchCSV(path){
-  const r = await fetch(path + "?ts=" + Date.now());
-  if(!r.ok) throw new Error("fetch failed " + path);
+async function fetchText(u){
+  const r = await fetch(`${u}?_=${Date.now()}`, { cache: "no-store" });
+  if (!r.ok) throw new Error(r.statusText);
   return r.text();
 }
 
-function setOnline(tsIso){
-  const ts = new Date(tsIso);
-  const ageSec = (Date.now() - ts.getTime())/1000;
-  const online = ageSec < 150; // < 2.5min als "online"
-  const dot = document.querySelector(".dot");
-  dot.classList.toggle("online", online);
-  $("status-text").textContent = online ? "online" : "offline";
-  $("updated").textContent = ts.toLocaleString();
+// ---- UI-Status setzen ----
+function setStatus(tsISO, onlineFlag){
+  const st  = computeStatus(tsISO, !!onlineFlag);
+  const dot = $("status-dot");
+  const txt = $("status-text");
+  const upd = $("updated");
+  if (dot) dot.className = `dot ${st.key}`;
+  if (txt) txt.textContent = st.key;
+  if (upd) upd.textContent = new Date(tsISO).toLocaleString();
 }
 
+// ---- State laden ----
 async function loadState(){
-  try{
-    const s = await fetchJSON(`data/state.json?ts=${Date.now()}`);
-    $("sym").textContent   = s.symbol ?? "–";
-    $("price").textContent = (s.price ?? 0).toFixed(3);
-    $("conf").textContent  = (s.confidence ?? 0).toFixed(3);
-    $("rf").textContent    = String(s.rf_signal ?? "–");
-    $("trades").textContent= String(s.active_trades ?? 0);
-    $("bal").textContent   = (s.balance_clean ?? 0).toLocaleString();
+  const s = await fetchJSON("data/state.json");
 
-    const dot = document.querySelector('#status-dot'); // <span id="status-dot"></span>
-    dot.className = `dot ${st.key}`;
-    dot.textContent = ` ${st.key}`; // optional: text
-    
-    const sent = s.sentiment || {};
-    $("sent-p").textContent   = (sent.positive ?? 0).toFixed(2);
-    $("sent-n").textContent   = (sent.neutral ?? 0).toFixed(2);
-    $("sent-neg").textContent = (sent.negative ?? 0).toFixed(2);
+  $("sym").textContent     = s.symbol ?? "–";
+  $("price").textContent   = (s.price ?? 0).toFixed(3);
+  $("conf").textContent    = (s.confidence ?? 0).toFixed(3);
+  $("rf").textContent      = String(s.rf_signal ?? "–");
+  $("trades").textContent  = String(s.active_trades ?? 0);
+  $("bal").textContent     = (s.balance_clean ?? 0).toLocaleString();
 
-    $("reg-scale").textContent = (s.regime?.scale ?? 1).toFixed(2);
-    $("reg-block").textContent = ok(s.regime?.block ?? false);
-    const ul = $("reg-reasons");
-    ul.innerHTML = "";
-    (s.regime?.reasons ?? []).forEach(r=>{
-      const li = document.createElement("li"); li.textContent = r; ul.appendChild(li);
-    });
+  const sent = s.sentiment ?? {};
+  $("sent-p").textContent   = (sent.positive ?? 0).toFixed(2);
+  $("sent-n").textContent   = (sent.neutral ?? 0).toFixed(2);
+  $("sent-neg").textContent = (sent.negative ?? 0).toFixed(2);
 
-    setOnline(s.ts);
-  }catch(e){ console.error(e); }
+  $("reg-scale").textContent = (s.regime?.scale ?? 1).toFixed(2);
+  $("reg-block").textContent = ok(s.regime?.block ?? false);
+  const ul = $("reg-reasons"); ul.innerHTML = "";
+  (s.regime?.reasons ?? []).forEach(r => {
+    const li = document.createElement("li");
+    li.textContent = r; ul.appendChild(li);
+  });
+
+  setStatus(s.ts, s.online);
 }
 
+// ---- Equity laden ----
 async function loadEquity(){
-  try{
-    const csv = await fetchCSV(`data/equity.csv?ts=${Date.now()}`);
-    const lines = csv.trim().split("\n");
-    const rows = lines.slice(1).map(l=>{
-      const [ts,eq] = l.split(",");
-      return { x:new Date(ts), y: parseFloat(eq) };
-    });
-    chart.data.datasets[0].data = rows;
-    chart.update();
-  }catch(e){ console.error(e); }
+  const csv = await fetchText("data/equity.csv");
+  const lines = csv.trim().split("\n");
+  const rows = lines.slice(1).map(l => {
+    const [ts, eq] = l.split(",");
+    return { x: new Date(ts), y: parseFloat(eq) };
+  });
+  // kleiner Hack: 1 Punkt -> 2 Punkte, damit Chart nicht „leer“ wirkt
+  if (rows.length === 1) {
+    rows.push({ x: new Date(rows[0].x.getTime() + 60000), y: rows[0].y });
+  }
+  chart.data.datasets[0].data = rows;
+  chart.update();
 }
 
-async function fetchJSON(u){ 
-  const r = await fetch(`${u}?_=${Date.now()}`, { cache: 'no-store' });
-  if(!r.ok) throw new Error(r.statusText);
-  return r.json();
-}
-
+// ---- Ticker ----
 async function tick(){
-  await loadState();
-  await loadEquity();
+  try {
+    await Promise.all([loadState(), loadEquity()]);
+  } catch(e) {
+    console.error(e);
+  }
 }
+
 window.addEventListener("load", async ()=>{
   initChart();
   await tick();
-  setInterval(tick, 60000); // 1 min
+  setInterval(tick, 60_000); // jede Minute
 });
-
