@@ -6,8 +6,6 @@ const $  = (id) => document.getElementById(id);
 const ok = (v)  => (v === true || v === "true") ? "ja" : "nein";
 
 function computeStatus(tsISO, onlineFlag){
-  const PUBLISH_EVERY_MS = 5 * 60 * 1000;
-  const FRESH_MAX_MS = PUBLISH_EVERY_MS * 2.2;
   const age = Date.now() - new Date(tsISO).getTime();
   if (!onlineFlag)        return { key: "offline", age };
   if (age > FRESH_MAX_MS) return { key: "stale",   age };
@@ -16,15 +14,17 @@ function computeStatus(tsISO, onlineFlag){
 
 function setStatus(tsISO, onlineFlag){
   const st = computeStatus(tsISO, !!onlineFlag);
-  // alle Dots (falls du irgendwo mehrere hast)
   document.querySelectorAll('.dot').forEach(el => {
     el.classList.remove('online','stale','offline');
     el.classList.add(st.key);
   });
-  const txt = document.getElementById('status-text');
-  const upd = document.getElementById('updated');
+  const tsStr = new Date(tsISO).toLocaleString();
+  const txt   = $('status-text');
   if (txt) txt.textContent = st.key;
-  if (upd) upd.textContent = new Date(tsISO).toLocaleString();
+  const uh = $('updated-header');
+  const uf = $('updated-footer');
+  if (uh) uh.textContent = tsStr;
+  if (uf) uf.textContent = tsStr;
 }
 
 // ---- Chart ----
@@ -47,7 +47,7 @@ function initChart() {
   });
 }
 
-// ---- Fetch helpers (einmalig) ----
+// ---- Fetch helpers ----
 async function fetchJSON(u){
   const r = await fetch(`${u}?_=${Date.now()}`, { cache: "no-store" });
   if (!r.ok) throw new Error(r.statusText);
@@ -71,9 +71,9 @@ async function loadState(){
   $("bal").textContent     = (s.balance_clean ?? 0).toLocaleString();
 
   const sent = s.sentiment || {};
-  document.getElementById("sent-p").textContent   = `P: ${(sent.positive ?? 0).toFixed(2)}`;
-  document.getElementById("sent-n").textContent   = `N: ${(sent.neutral  ?? 0).toFixed(2)}`;
-  document.getElementById("sent-neg").textContent = `Neg: ${(sent.negative ?? 0).toFixed(2)}`;
+  $("sent-p").textContent   = `P: ${(sent.positive ?? 0).toFixed(2)}`;
+  $("sent-n").textContent   = `N: ${(sent.neutral  ?? 0).toFixed(2)}`;
+  $("sent-neg").textContent = `Neg: ${(sent.negative ?? 0).toFixed(2)}`;
 
   $("reg-scale").textContent = (s.regime?.scale ?? 1).toFixed(2);
   $("reg-block").textContent = ok(s.regime?.block ?? false);
@@ -94,9 +94,8 @@ async function loadEquity(){
     const [ts, eq] = l.split(",");
     return { x: new Date(ts), y: parseFloat(eq) };
   });
-  // kleiner Hack: 1 Punkt -> 2 Punkte, damit Chart nicht „leer“ wirkt
   if (rows.length === 1) {
-    rows.push({ x: new Date(rows[0].x.getTime() + 60000), y: rows[0].y });
+    rows.push({ x: new Date(rows[0].x.getTime() + 60_000), y: rows[0].y });
   }
   chart.data.datasets[0].data = rows;
   chart.update();
