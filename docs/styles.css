@@ -11,16 +11,31 @@ h1{margin:0;font-size:18px}
 .dot.stale{background:#f59e0b}
 .dot.offline{background:#ef4444}
 
-main{padding:20px;max-width:1100px;margin:0 auto}
-.cards{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:12px;margin-bottom:16px}
-.card{background:var(--card);padding:12px 14px;border-radius:14px;border:1px solid #1e252f; min-width:220px}
-.card h3{margin:0 0 6px 0;font-size:13px;color:var(--muted);font-weight:600}
+/* Typo & Umbruch */
+.card h3{margin:0 0 6px 0;font-size:13px;color:#93a1b1;font-weight:600}
 .card p{margin:0;font-size:16px}
-
 .card .k{font-weight:600;color:#9ca3af;font-size:clamp(11px,0.9vw,13px)}
 .card .v{font-weight:600;line-height:1.2;font-size:clamp(13px,1.6vw,18px)}
 .card .v, .reasons{overflow-wrap:anywhere;word-break:break-word}
-.card.compact .v{font-size:clamp(12px,1.2vw,16px)}
+
+/* Sentiment: drei saubere Zeilen */
+#sent-p, #sent-n, #sent-neg { display:block; font-variant-numeric: tabular-nums; }
+
+main{padding:20px;max-width:1100px;margin:0 auto}
+.cards{
+  display:grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap:12px;
+  margin-bottom:16px;
+  align-items:stretch;
+}
+.card{
+  background:var(--card);
+  padding:12px 14px;
+  border-radius:14px;
+  border:1px solid #1e252f;
+  min-width:0;                 /* wichtig: Inhalt darf schrumpfen, statt überzulaufen */
+}
 .reasons{max-height:10.5em;overflow:auto}
 
 section h2{font-size:16px;margin:12px 0}
