@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Bot Dashboard</title>
+  <link rel="stylesheet" href="styles.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
+</head>
+<body>
+  <header>
+    <h1>TraderBot – Live Dashboard</h1>
+    <div id="status"><span class="dot"></span><span id="status-text">offline</span></div>
+  </header>
+
+  <main>
+    <section class="cards">
+      <div class="card"><h3>Symbol</h3><p id="sym">–</p></div>
+      <div class="card"><h3>Price</h3><p id="price">–</p></div>
+      <div class="card"><h3>Confidence</h3><p id="conf">–</p></div>
+      <div class="card"><h3>RF</h3><p id="rf">–</p></div>
+      <div class="card"><h3>Active Trades</h3><p id="trades">–</p></div>
+      <div class="card"><h3>Balance (clean)</h3><p id="bal">–</p></div>
+    </section>
+
+    <section class="cards">
+      <div class="card">
+        <h3>Sentiment</h3>
+        <p><small>P:</small> <span id="sent-p">–</span> &nbsp; 
+           <small>N:</small> <span id="sent-n">–</span> &nbsp; 
+           <small>Neg:</small> <span id="sent-neg">–</span></p>
+      </div>
+      <div class="card">
+        <h3>Regime</h3>
+        <p>Scale: <span id="reg-scale">–</span> &nbsp; Block: <span id="reg-block">–</span></p>
+        <ul id="reg-reasons"></ul>
+      </div>
+    </section>
+
+    <section>
+      <h2>Equity</h2>
+      <canvas id="equityChart" height="120"></canvas>
+      <p class="updated">Zuletzt aktualisiert: <span id="updated">–</span></p>
+    </section>
+  </main>
+
+  <footer><small>© dein Bot</small></footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
