@@ -70,10 +70,10 @@ async function loadState(){
   $("trades").textContent  = String(s.active_trades ?? 0);
   $("bal").textContent     = (s.balance_clean ?? 0).toLocaleString();
 
-  const sent = s.sentiment ?? {};
-  $("sent-p").textContent   = (sent.positive ?? 0).toFixed(2);
-  $("sent-n").textContent   = (sent.neutral ?? 0).toFixed(2);
-  $("sent-neg").textContent = (sent.negative ?? 0).toFixed(2);
+  const sent = s.sentiment || {};
+  document.getElementById("sent-p").textContent   = `P: ${(sent.positive ?? 0).toFixed(2)}`;
+  document.getElementById("sent-n").textContent   = `N: ${(sent.neutral  ?? 0).toFixed(2)}`;
+  document.getElementById("sent-neg").textContent = `Neg: ${(sent.negative ?? 0).toFixed(2)}`;
 
   $("reg-scale").textContent = (s.regime?.scale ?? 1).toFixed(2);
   $("reg-block").textContent = ok(s.regime?.block ?? false);
