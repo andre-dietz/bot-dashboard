@@ -109,3 +109,8 @@ window.addEventListener("load", async ()=>{
   await tick();
   setInterval(tick, 60000); // 1 min
 });
+
+.dot{display:inline-block;width:10px;height:10px;border-radius:50%;vertical-align:middle;margin-right:6px;background:#ef4444}
+.dot.online{background:#16a34a}
+.dot.stale{background:#f59e0b}
+.dot.offline{background:#ef4444}
