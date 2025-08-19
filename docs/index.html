@@ -12,11 +12,11 @@
   <header>
     <h1>BigP Live Dashboard</h1>
     <div id="status">
-    <span class="dot"></span>
-    <span id="status-text">offline</span>
-    &nbsp;·&nbsp;<span class="updated" id="updated">–</span>
-  </div>
-</header>
+      <span class="dot"></span>
+      <span id="status-text">offline</span>
+      &nbsp;·&nbsp;<span class="updated" id="updated-header">–</span>
+    </div>
+  </header>
 
   <main>
     <section class="cards">
@@ -31,26 +31,27 @@
     <section class="cards">
       <div class="card">
         <h3>Sentiment</h3>
-        <p><small>P:</small> <span id="sent-p">–</span> &nbsp; 
-           <small>N:</small> <span id="sent-n">–</span> &nbsp; 
-           <small>Neg:</small> <span id="sent-neg">–</span></p>
+        <div class="v">
+          <span id="sent-p">–</span>
+          <span id="sent-n">–</span>
+          <span id="sent-neg">–</span>
+        </div>
       </div>
       <div class="card">
         <h3>Regime</h3>
         <p>Scale: <span id="reg-scale">–</span> &nbsp; Block: <span id="reg-block">–</span></p>
-        <ul id="reg-reasons"></ul>
+        <ul id="reg-reasons" class="reasons"></ul>
       </div>
     </section>
 
     <section>
       <h2>Equity</h2>
       <canvas id="equityChart" height="120"></canvas>
-      <p class="updated">Zuletzt aktualisiert: <span id="updated">–</span></p>
+      <p class="updated">Zuletzt aktualisiert: <span id="updated-footer">–</span></p>
     </section>
   </main>
 
   <footer><small>© dein Bot</small></footer>
-
   <script src="app.js"></script>
 </body>
 </html>
