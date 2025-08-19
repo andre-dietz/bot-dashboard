@@ -6,10 +6,25 @@ const $  = (id) => document.getElementById(id);
 const ok = (v)  => (v === true || v === "true") ? "ja" : "nein";
 
 function computeStatus(tsISO, onlineFlag){
+  const PUBLISH_EVERY_MS = 5 * 60 * 1000;
+  const FRESH_MAX_MS = PUBLISH_EVERY_MS * 2.2;
   const age = Date.now() - new Date(tsISO).getTime();
-  if (!onlineFlag)         return { key: "offline", age };
-  if (age > FRESH_MAX_MS)  return { key: "stale",   age };
-  return { key: "online",  age };
+  if (!onlineFlag)        return { key: "offline", age };
+  if (age > FRESH_MAX_MS) return { key: "stale",   age };
+  return { key: "online", age };
+}
+
+function setStatus(tsISO, onlineFlag){
+  const st = computeStatus(tsISO, !!onlineFlag);
+  // alle Dots (falls du irgendwo mehrere hast)
+  document.querySelectorAll('.dot').forEach(el => {
+    el.classList.remove('online','stale','offline');
+    el.classList.add(st.key);
+  });
+  const txt = document.getElementById('status-text');
+  const upd = document.getElementById('updated');
+  if (txt) txt.textContent = st.key;
+  if (upd) upd.textContent = new Date(tsISO).toLocaleString();
 }
 
 // ---- Chart ----
@@ -42,17 +57,6 @@ async function fetchText(u){
   const r = await fetch(`${u}?_=${Date.now()}`, { cache: "no-store" });
   if (!r.ok) throw new Error(r.statusText);
   return r.text();
-}
-
-// ---- UI-Status setzen ----
-function setStatus(tsISO, onlineFlag){
-  const st  = computeStatus(tsISO, !!onlineFlag);
-  const dot = $("status-dot");
-  const txt = $("status-text");
-  const upd = $("updated");
-  if (dot) dot.className = `dot ${st.key}`;
-  if (txt) txt.textContent = st.key;
-  if (upd) upd.textContent = new Date(tsISO).toLocaleString();
 }
 
 // ---- State laden ----
